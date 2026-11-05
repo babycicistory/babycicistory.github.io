@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>血汗錢實時計算器 · 金句版</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(145deg, #1a2a3a 0%, #0f1a24 100%);
+            min-height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            padding: 16px; color: #e0e0e0;
+        }
+        .container {
+            max-width: 600px; width: 100%;
+            background: rgba(30, 40, 50, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 42px; padding: 28px 24px;
+            box-shadow: 0 25px 40px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 200, 100, 0.15);
+        }
+        h1 {
+            font-size: 1.9rem; font-weight: 800; text-align: center;
+            letter-spacing: 2px; color: #ffd966;
+            text-shadow: 0 4px 10px rgba(255, 200, 0, 0.3);
+            margin-bottom: 8px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        h1 span { font-size: 2rem; transform: rotate(5deg); }
+        .subhead {
+            text-align: center; font-size: 0.9rem; color: #aaa;
+            margin-bottom: 24px; border-bottom: 1px dashed #555;
+            padding-bottom: 14px; font-style: italic; letter-spacing: 1px;
+        }
+        .setup-panel { display: flex; flex-direction: column; gap: 16px; }
+        .input-group { display: flex; flex-direction: column; gap: 6px; }
+        .input-group label {
+            font-size: 0.9rem; font-weight: 600; color: #ccc;
+            margin-left: 6px; letter-spacing: 0.5px;
+        }
+        .input-group input, .input-group select {
+            background: #222f3a; border: 1px solid #3e4f5e;
+            border-radius: 60px; padding: 12px 18px;
+            font-size: 1rem; color: #f0f0f0; outline: none;
+            transition: all 0.2s; font-family: inherit;
+        }
+        .input-group input:focus, .input-group select:focus {
+            border-color: #ffb347; box-shadow: 0 0 0 3px rgba(255, 180, 70, 0.2);
+            background: #1e2c38;
+        }
+        .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .work-days { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+        .work-day-chip {
+            background: #2b3b48; border-radius: 40px; padding: 8px 14px;
+            font-size: 0.9rem; font-weight: 500; color: #bbb;
+            cursor: pointer; user-select: none; transition: 0.15s;
+            border: 1px solid #405563; flex: 1 0 auto; text-align: center;
+        }
+        .work-day-chip.selected {
+            background: #ffb347; color: #1a1f24; border-color: #ffcf7a;
+            font-weight: 700; box-shadow: 0 0 12px rgba(255, 180, 70, 0.5);
+        }
+        .checkbox-row {
+            display: flex; align-items: center; gap: 12px; margin: 4px 0;
+            background: #1e2b36; padding: 10px 16px; border-radius: 60px;
+        }
+        .checkbox-row label {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 0.95rem; color: #ddd; cursor: pointer; flex: 1;
+        }
+        .checkbox-row input[type="checkbox"] {
+            width: 20px; height: 20px; accent-color: #ffb347;
+            transform: scale(1.1); cursor: pointer;
+        }
+        .time-range {
+            display: flex; align-items: center; gap: 8px;
+            background: #222f3a; border-radius: 60px;
+            padding: 6px 16px; border: 1px solid #3e4f5e;
+        }
+        .time-range input[type="time"] {
+            background: transparent; border: none; padding: 8px 0;
+            width: 110px; font-size: 1rem; color: #fff; outline: none;
+        }
+        .time-range span { color: #aaa; }
+        .btn {
+            background: linear-gradient(135deg, #ffb347, #e68a00);
+            border: none; border-radius: 60px; padding: 16px 24px;
+            font-size: 1.2rem; font-weight: 800; color: #1a1f24;
+            letter-spacing: 1px; cursor: pointer; transition: 0.2s;
+            box-shadow: 0 10px 18px rgba(230, 138, 0, 0.3);
+            margin-top: 12px; border: 1px solid #ffe0a3;
+        }
+        .btn:hover {
+            transform: scale(1.01); box-shadow: 0 12px 24px rgba(255, 180, 0, 0.5);
+            background: linear-gradient(135deg, #ffc15e, #f09b00);
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-secondary {
+            background: #314353; box-shadow: none; color: #ddd;
+            font-size: 1rem; padding: 12px 18px;
+            border: 1px solid #4e6478; box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+        .btn-secondary:hover {
+            background: #3e5468; box-shadow: 0 6px 12px rgba(0,0,0,0.5); color: #fff;
+        }
+        .btn-quote {
+            background: linear-gradient(135deg, #6a4c93, #4a2a6e);
+            color: #f0e6ff; border: 1px solid #9b7cc4;
+            box-shadow: 0 8px 18px rgba(106, 76, 147, 0.5);
+            flex: 1; margin-top: 0; padding: 14px 10px; font-size: 1rem;
+        }
+        .btn-quote:hover {
+            background: linear-gradient(135deg, #7d5ba8, #5a3585);
+            box-shadow: 0 10px 22px rgba(130, 90, 180, 0.7);
+        }
+        .dashboard { display: flex; flex-direction: column; gap: 20px; }
+        .money-card {
+            background: radial-gradient(circle at 30% 20%, #2a3d4e, #19232e);
+            border-radius: 32px; padding: 24px 20px; text-align: center;
+            border: 1px solid #4e6d85;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.7), 0 10px 20px rgba(0, 0, 0, 0.5);
+            position: relative; overflow: hidden;
+        }
+        .money-card::after {
+            content: "💰"; font-size: 7rem; position: absolute;
+            right: -20px; bottom: -30px; opacity: 0.07; transform: rotate(15deg);
+        }
+        .salary-number {
+            font-size: 3.6rem; font-weight: 900; font-family: 'Courier New', monospace;
+            color: #ffdb8e; text-shadow: 0 0 15px rgba(255, 200, 0, 0.7);
+            letter-spacing: 2px; line-height: 1.2; word-break: break-word;
+        }
+        .salary-currency { font-size: 1.2rem; color: #b0c4d9; letter-spacing: 2px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .stat-item {
+            background: #1e2e3b; border-radius: 24px; padding: 14px 12px;
+            text-align: center; border: 1px solid #35505f;
+        }
+        .stat-label {
+            font-size: 0.75rem; text-transform: uppercase;
+            letter-spacing: 1px; color: #8faec9; margin-bottom: 6px;
+        }
+        .stat-value { font-size: 1.6rem; font-weight: 700; color: #eef5fc; }
+        .progress-section {
+            background: #1a2833; border-radius: 30px; padding: 14px 18px;
+            border: 1px solid #35515f;
+        }
+        .progress-label {
+            display: flex; justify-content: space-between;
+            font-size: 0.85rem; color: #b0c4d9; margin-bottom: 8px;
+        }
+        .progress-bar-bg {
+            background: #0e161e; height: 16px; border-radius: 30px;
+            overflow: hidden; border: 1px solid #2e4150;
+        }
+        .progress-fill {
+            width: 0%; height: 100%;
+            background: linear-gradient(90deg, #ffb347, #f0e68c);
+            border-radius: 30px; transition: width 0.4s ease;
+            box-shadow: 0 0 12px #ffb347;
+        }
+        .quote {
+            font-style: italic; font-size: 1.05rem; color: #e8d9b5;
+            text-align: center; padding: 18px 14px 10px;
+            border-top: 1px dashed #3f5566; margin-top: 6px;
+            letter-spacing: 0.4px; font-weight: 400;
+            min-height: 72px; display: flex; align-items: center; justify-content: center;
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+        .quote.quote-pop {
+            animation: quotePop 0.45s ease;
+        }
+        @keyframes quotePop {
+            0% { transform: scale(1); color: #e8d9b5; }
+            40% { transform: scale(1.06); color: #ffd966; text-shadow: 0 0 20px rgba(255, 220, 100, 0.7); }
+            100% { transform: scale(1); color: #e8d9b5; }
+        }
+        .button-group {
+            display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap;
+        }
+        .button-group .btn {
+            flex: 1; margin-top: 0; padding: 14px 10px; font-size: 1rem;
+        }
+        .hidden { display: none !important; }
+        .share-note {
+            font-size: 0.75rem; color: #8a9aa8; text-align: center;
+            margin-top: 16px; padding-top: 12px;
+        }
+        .status-badge {
+            font-size: 0.75rem; background: #1d3b4b;
+            display: inline-block; padding: 4px 12px;
+            border-radius: 40px; color: #9dc6e0;
+            letter-spacing: 0.5px; margin-bottom: 8px;
+        }
+        .night-badge {
+            background: #4a2a6e; color: #d4b3ff; border: 1px solid #7a4bc4;
+        }
+        .overnight-hint {
+            font-size: 0.75rem; color: #c9a0ff;
+            margin-top: 6px; margin-left: 6px;
+            display: flex; align-items: center; gap: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="container" id="app">
+    <!-- 設定面板 -->
+    <div id="setupPanel">
+        <h1><span>⏱️</span> 血汗錢計算器 <span>💸</span></h1>
+        <div class="subhead">「正經扮工，認真計錢 · 通宵更都計到」</div>
+
+        <div class="setup-panel">
+            <div class="input-group">
+                <label>👤 打工仔花名</label>
+                <input type="text" id="username" placeholder="例如：地獄黑仔王" value="無名氏">
+            </div>
+
+            <div class="row2">
+                <div class="input-group">
+                    <label>📅 出糧日 (每月)</label>
+                    <input type="number" id="payday" min="1" max="31" value="1" placeholder="1-31">
+                </div>
+                <div class="input-group">
+                    <label>💰 月薪 (HKD)</label>
+                    <input type="number" id="monthlySalary" min="1" step="500" value="18000" placeholder="例如 18000">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>📆 每週工作日 (可多選)</label>
+                <div class="work-days" id="workDaysContainer"></div>
+            </div>
+
+            <div class="input-group">
+                <label>⏰ 工作日工時</label>
+                <div class="time-range">
+                    <input type="time" id="workStart" value="09:00">
+                    <span>至</span>
+                    <input type="time" id="workEnd" value="18:00">
+                </div>
+                <div class="overnight-hint" id="overnightHint" style="display:none;">
+                    🌙 跨夜更模式已啟動（收工時間早過返工）
+                </div>
+            </div>
+
+            <div class="checkbox-row">
+                <label>
+                    <input type="checkbox" id="includeLunch" checked>
+                    🍽️ 飯鐘計錢 (計埋食飯時間)
+                </label>
+            </div>
+
+            <div class="checkbox-row">
+                <label>
+                    <input type="checkbox" id="saturdayWork">
+                    🎯 星期六要返工
+                </label>
+            </div>
+
+            <div class="input-group" id="satTimeGroup" style="display: none;">
+                <label>星期六工時</label>
+                <div class="time-range">
+                    <input type="time" id="satStart" value="09:00">
+                    <span>至</span>
+                    <input type="time" id="satEnd" value="13:00">
+                </div>
+                <div class="overnight-hint" id="satOvernightHint" style="display:none;">
+                    🌙 跨夜更
+                </div>
+            </div>
+
+            <div class="checkbox-row">
+                <label>
+                    <input type="checkbox" id="sundayWork">
+                    🌞 星期日要返工
+                </label>
+            </div>
+
+            <div class="input-group" id="sunTimeGroup" style="display: none;">
+                <label>星期日工時</label>
+                <div class="time-range">
+                    <input type="time" id="sunStart" value="09:00">
+                    <span>至</span>
+                    <input type="time" id="sunEnd" value="13:00">
+                </div>
+                <div class="overnight-hint" id="sunOvernightHint" style="display:none;">
+                    🌙 跨夜更
+                </div>
+            </div>
+
+            <button class="btn" id="startBtn">💪 開始計錢 (扮工啟動)</button>
+        </div>
+        <div class="share-note">* 所有數據只存於瀏覽器</div>
+    </div>
+
+    <!-- 儀表板 -->
+    <div id="dashboardPanel" class="hidden">
+        <div class="dashboard">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="status-badge" id="userGreeting">👋 打工仔</span>
+                <span class="status-badge" id="workStatus">⚡ 工作中</span>
+            </div>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                <span class="status-badge night-badge hidden" id="nightBadge">🌙 通宵更</span>
+            </div>
+            <div class="money-card">
+                <div class="salary-currency">HKD · 本月已賺</div>
+                <div class="salary-number" id="salaryDisplay">$0.00</div>
+                <div style="font-size: 0.85rem; color: #aabccc; margin-top: 6px;" id="salarySub">每秒血汗中...</div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">⏳ 已返工時數</div>
+                    <div class="stat-value" id="hoursWorked">0.0 hr</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">📅 距離出糧</div>
+                    <div class="stat-value" id="daysToPayday">0 日</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">💰 今日已賺</div>
+                    <div class="stat-value" id="todayEarnings">$0.00</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">📊 本月進度</div>
+                    <div class="stat-value" id="progressPercent">0%</div>
+                </div>
+            </div>
+
+            <div class="progress-section">
+                <div class="progress-label">
+                    <span>😤 搵錢進度</span>
+                    <span id="progressText">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div class="quote" id="quoteText">「人工唔係萬能，但無錢就萬萬不能。」</div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary" id="editBtn">✏️ 重新設定</button>
+                <button class="btn btn-quote" id="quoteBtn">💬 出句金句</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- 全局變量 ----------
+        let userConfig = {
+            username: '無名氏',
+            payday: 1,
+            monthlySalary: 18000,
+            workDays: ['mon','tue','wed','thu','fri'],
+            workStart: '09:00',
+            workEnd: '18:00',
+            includeLunch: true,
+            saturdayWork: false,
+            satStart: '09:00',
+            satEnd: '13:00',
+            sundayWork: false,
+            sunStart: '09:00',
+            sunEnd: '13:00'
+        };
+
+        let timerInterval = null;
+        let wholeMonthWorkMinutes = 0;
+        let lastQuoteIndex = -1;
+
+        // ============ 超多金句庫（100+ 句） ============
+        const QUOTES = [
+            // 搞笑扮正經
+            "「人工唔係萬能，但無錢就萬萬不能。」",
+            "「返工係為咗出糧，出糧係為咗唔使返工？」",
+            "「每一秒都係錢，所以你而家喺度發達。」",
+            "「唔好睇小每一蚊，佢哋都係你嘅血汗。」",
+            "「今日嘅努力，係聽日嘅人工…… 聽日嘅洗費。」",
+            "「老闆覺得你值呢個價，銀行都覺得。」",
+            "「工作係治癒無聊嘅良藥，但副作用係攰。」",
+            "「當你覺得攰，望下個計數器，即刻醒神。」",
+            "「你嘅時間就係金錢，呢句而家好真實。」",
+            "「返工等出糧，出糧等洗錢，無限輪迴。」",
+            "「呢個計數器，係你今日最忠誠嘅朋友。」",
+            "「你嘅每一秒，都係公司嘅固定資產。」",
+            "「唔好問公司俾咗你咩，問下你俾咗公司幾多秒。」",
+            "「人工係老闆嘅恩賜，血汗係你嘅奉獻。」",
+            "「當你覺得人工低，望下隔籬位，佢可能更低。」",
+            "「呢一秒你賺咗，下一秒你仲賺緊，恭喜。」",
+            "「返工唔係為錢，係為咗證明你唔使靠屋企。」",
+            "「你嘅努力，喺呢個計數器度，一清二楚。」",
+            "「唔好嫌人工少，至少你仲有份工。」",
+            "「有工返嘅時候嫌辛苦，冇工返嘅時候嫌悶。」",
+            "「你嘅血汗，化成一串數字，幾浪漫。」",
+            "「呢個世界冇免費午餐，但有免費加班。」",
+            "「你嘅時間好值錢，可惜唔係你話事。」",
+            "「每秒跳一次，你嘅青春就咁樣流走。」",
+            "「計數器唔會呃你，你嘅老闆就唔敢講。」",
+            "「返工嘅意義，就係等出糧嗰一刻嘅喜悅。」",
+            "「你而家嘅努力，係為咗将来唔使努力？」",
+            "「錢唔係萬能，但呢個計數器話你知佢幾重要。」",
+            "「你嘅工作時數，比你想像中值錢。」",
+            "「唔好停，你嘅血汗仲未流完。」",
+            // 職場求生
+            "「同事係戰友，老闆係敵人，糧單係真相。」",
+            "「職場三大謊言：唔急、好快完、加你人工。」",
+            "「開會嘅時間，係用嚟證明你有幾耐冇出聲。」",
+            "「你嘅表現唔係睇你做幾多，係睇你講幾多。」",
+            "「返工最緊要識做人，做嘢係其次。」",
+            "「老闆永遠是對的，即使佢錯，都係你誤會。」",
+            "「加班係責任，準時走係奇蹟。」",
+            "「你嘅努力，老闆未必見到；你嘅失誤，全公司都見到。」",
+            "「職場如戰場，糧單如戰報。」",
+            "「唔好同老闆講道理，佢只會同你講感情。」",
+            "「同事嘅問候，通常係想知你幾時走。」",
+            "「你嘅工作範疇，永遠比職位描述多一行。」",
+            "「開會唔係為咗解決問題，係為咗製造更多問題。」",
+            "「你嘅上司永遠覺得你仲有進步空間，包括加班。」",
+            "「職場生存法則：做少少，講多多，走快快。」",
+            "「你嘅意見好重要，但我哋唔會採用。」",
+            "「老闆話唔急，即係好急；老闆話好急，即係癲咗。」",
+            "「你嘅年假，係公司嘅傳說。」",
+            "「同事之間嘅友誼，建基於共同敵人。」",
+            "「你嘅工作表現，取決於你嘅匯報技巧。」",
+            // 通宵更
+            "「通宵更嘅每一秒，都係月亮幫你見證嘅血汗。」",
+            "「當你捱夜嘅時候，個計數器都陪你一齊醒。」",
+            "「凌晨三點嘅人工，特別有味道。」",
+            "「你見過凌晨四點嘅香港，但你更想見凌晨四點嘅床。」",
+            "「通宵更嘅好處，係你唔使同人迫地鐵。」",
+            "「夜晚返工，日頭瞓覺，你嘅生理時鐘已經移民。」",
+            "「月亮代表你嘅心，糧單代表你嘅命。」",
+            "「通宵更嘅你，係城市嘅守夜人，可惜冇人知。」",
+            "「你嘅黑眼圈，係你努力嘅勳章。」",
+            "「夜晚嘅工作，特別容易令人懷疑人生。」",
+            "「當你通宵嘅時候，全世界都瞓咗，除咗你同你嘅老闆。」",
+            "「通宵更嘅唯一好處：冇人同你爭廁所。」",
+            "「你嘅夜晚，係別人嘅白天；你嘅白天，係別人嘅夜晚。」",
+            "「通宵更嘅你，係夜空中最亮嘅打工仔。」",
+            "「凌晨嘅咖啡，係你嘅續命丹。」",
+            "「你嘅生理時鐘，已經同公司簽咗約。」",
+            "「通宵更嘅工資，叫做精神損失費。」",
+            "「你見過日出，但你更想見到收工。」",
+            "「夜晚返工嘅人，都係有故事嘅人。」",
+            "「通宵更嘅你，係公司嘅隱形英雄，糧單都係隱形。」",
+            // 出糧盼望
+            "「出糧嗰日，你嘅笑容比陽光更燦爛。」",
+            "「距離出糧仲有幾多日？呢個問題比哲學更難答。」",
+            "「出糧前嘅你，係一條死魚；出糧後嘅你，係一條活龍。」",
+            "「人工一到手，唔夠幾日又變返窮光蛋。」",
+            "「出糧嘅喜悅，足以抵消一個月嘅辛酸。」",
+            "「你嘅銀行戶口，喺出糧日短暫地豐滿過。」",
+            "「出糧日係打工仔嘅新年。」",
+            "「每月最開心嘅一日，就係見到戶口多咗幾個零。」",
+            "「出糧前諗好點用，出糧後發現唔夠用。」",
+            "「你嘅薪金，係你一個月嘅精神賠償。」",
+            "「出糧嗰刻，你覺得自己係世界之王。」",
+            "「可惜世界之王嘅任期，只有三日。」",
+            "「出糧日嘅你，連呼吸都特別大聲。」",
+            "「人工係你嘅，但點用就唔到你話事。」",
+            "「出糧嘅喜悅，係支撐你返工嘅唯一動力。」",
+            "「你每個月最期待嘅數字，唔係彩票，係糧單。」",
+            "「出糧日，你終於可以還返上個月嘅債。」",
+            "「你嘅薪水，係你同公司之間嘅唯一聯繫。」",
+            "「出糧嗰日，你覺得自己終於被尊重。」",
+            "「可惜尊重嘅有效期，只有一個月。」",
+            // 自我安慰
+            "「雖然人工唔高，但至少你有份工。」",
+            "「雖然返工好攰，但至少你有錢收。」",
+            "「雖然老闆好煩，但至少佢出糧準時。」",
+            "「雖然同事好衰，但至少你唔使對住佢成世。」",
+            "「雖然加班冇錢，但至少你學到嘢。」",
+            "「雖然通宵好辛苦，但至少你嘅肝仲頂得住。」",
+            "「雖然你嘅人工唔夠買樓，但至少夠食飯。」",
+            "「雖然你唔鍾意返工，但至少你唔使失業。」",
+            "「雖然你嘅工作冇意義，但至少你嘅糧單有意義。」",
+            "「雖然你日日都想辭職，但至少你仲未辭。」",
+            "「雖然你覺得自己好廢，但至少公司仲要你。」",
+            "「雖然你嘅人生好似冇方向，但至少你嘅計數器有。」",
+            "「雖然你唔知為咩而活，但至少你知為咩而返工。」",
+            "「雖然你嘅夢想好遠，但至少你嘅出糧日好近。」",
+            "「雖然你嘅努力未必有回報，但至少你嘅時薪有。」",
+            "「雖然你唔開心，但至少你嘅戶口開心。」",
+            "「雖然你覺得自己係齒輪，但至少你係一個有用嘅齒輪。」",
+            "「雖然你嘅工作好悶，但至少你嘅人工好穩定。」",
+            "「雖然你唔想返工，但至少你唔使借錢開飯。」",
+            "「雖然你嘅人生好似一潭死水，但至少你嘅計數器仲跳緊。」",
+            // 額外隨機
+            "「你嘅每一秒，都係老闆嘅投資回報。」",
+            "「唔好問點解要返工，問下點解要食飯。」",
+            "「你嘅時間，就係你嘅身價。」",
+            "「呢個計數器，係你今日最勤力嘅同事。」",
+            "「你嘅血汗，化成一串數字，幾有詩意。」",
+            "「返工嘅時候想放假，放假嘅時候想返工？唔會。」",
+            "「你嘅工作，係你人生嘅一部分；你嘅糧單，係你生存嘅全部。」",
+            "「唔好睇小自己，你每秒都賺緊錢。」",
+            "「你嘅努力，喺呢一秒，得到咗證明。」",
+            "「呢一秒你賺咗，下一秒你仲賺緊，無限loop。」"
+        ];
+
+        // 取得不重複嘅隨機金句
+        function getRandomQuote() {
+            if (QUOTES.length === 0) return '「你嘅努力，總有回報。」';
+            if (QUOTES.length === 1) return QUOTES[0];
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * QUOTES.length);
+            } while (newIndex === lastQuoteIndex);
+            lastQuoteIndex = newIndex;
+            return QUOTES[newIndex];
+        }
+
+        // ---------- DOM 元素 ----------
+        const setupPanel = document.getElementById('setupPanel');
+        const dashboardPanel = document.getElementById('dashboardPanel');
+        const startBtn = document.getElementById('startBtn');
+        const editBtn = document.getElementById('editBtn');
+        const quoteBtn = document.getElementById('quoteBtn');
+        const usernameInput = document.getElementById('username');
+        const paydayInput = document.getElementById('payday');
+        const monthlySalaryInput = document.getElementById('monthlySalary');
+        const workStartInput = document.getElementById('workStart');
+        const workEndInput = document.getElementById('workEnd');
+        const includeLunchCheck = document.getElementById('includeLunch');
+        const saturdayWorkCheck = document.getElementById('saturdayWork');
+        const sundayWorkCheck = document.getElementById('sundayWork');
+        const satTimeGroup = document.getElementById('satTimeGroup');
+        const sunTimeGroup = document.getElementById('sunTimeGroup');
+        const satStartInput = document.getElementById('satStart');
+        const satEndInput = document.getElementById('satEnd');
+        const sunStartInput = document.getElementById('sunStart');
+        const sunEndInput = document.getElementById('sunEnd');
+        const workDaysContainer = document.getElementById('workDaysContainer');
+        const overnightHint = document.getElementById('overnightHint');
+        const satOvernightHint = document.getElementById('satOvernightHint');
+        const sunOvernightHint = document.getElementById('sunOvernightHint');
+        const nightBadge = document.getElementById('nightBadge');
+
+        const salaryDisplay = document.getElementById('salaryDisplay');
+        const hoursWorked = document.getElementById('hoursWorked');
+        const daysToPayday = document.getElementById('daysToPayday');
+        const todayEarnings = document.getElementById('todayEarnings');
+        const progressPercent = document.getElementById('progressPercent');
+        const progressText = document.getElementById('progressText');
+        const progressFill = document.getElementById('progressFill');
+        const quoteText = document.getElementById('quoteText');
+        const userGreeting = document.getElementById('userGreeting');
+        const workStatus = document.getElementById('workStatus');
+        const salarySub = document.getElementById('salarySub');
+
+        // ---------- 工作日按鈕 ----------
+        const dayNames = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+        const dayLabels = ['一', '二', '三', '四', '五', '六', '日'];
+        let selectedDays = new Set(userConfig.workDays);
+
+        function renderWorkDays() {
+            workDaysContainer.innerHTML = '';
+            dayNames.forEach((day, idx) => {
+                const chip = document.createElement('div');
+                chip.className = `work-day-chip ${selectedDays.has(day) ? 'selected' : ''}`;
+                chip.textContent = '星期' + dayLabels[idx];
+                chip.dataset.day = day;
+                chip.addEventListener('click', () => {
+                    if (selectedDays.has(day)) {
+                        selectedDays.delete(day);
+                        chip.classList.remove('selected');
+                    } else {
+                        selectedDays.add(day);
+                        chip.classList.add('selected');
+                    }
+                });
+                workDaysContainer.appendChild(chip);
+            });
+        }
+        renderWorkDays();
+
+        function isOvernight(startStr, endStr) {
+            const [sh, sm] = startStr.split(':').map(Number);
+            const [eh, em] = endStr.split(':').map(Number);
+            return (eh * 60 + em) <= (sh * 60 + sm);
+        }
+
+        function updateOvernightHints() {
+            overnightHint.style.display = isOvernight(workStartInput.value, workEndInput.value) ? 'flex' : 'none';
+            satOvernightHint.style.display = isOvernight(satStartInput.value, satEndInput.value) ? 'flex' : 'none';
+            sunOvernightHint.style.display = isOvernight(sunStartInput.value, sunEndInput.value) ? 'flex' : 'none';
+        }
+
+        workStartInput.addEventListener('change', updateOvernightHints);
+        workEndInput.addEventListener('change', updateOvernightHints);
+        satStartInput.addEventListener('change', updateOvernightHints);
+        satEndInput.addEventListener('change', updateOvernightHints);
+        sunStartInput.addEventListener('change', updateOvernightHints);
+        sunEndInput.addEventListener('change', updateOvernightHints);
+
+        saturdayWorkCheck.addEventListener('change', () => {
+            satTimeGroup.style.display = saturdayWorkCheck.checked ? 'block' : 'none';
+        });
+        sundayWorkCheck.addEventListener('change', () => {
+            sunTimeGroup.style.display = sundayWorkCheck.checked ? 'block' : 'none';
+        });
+
+        // ---------- 核心工時計算（支援跨夜） ----------
+        function timeStrToMinutes(timeStr) {
+            const [h, m] = timeStr.split(':').map(Number);
+            return h * 60 + m;
+        }
+
+        function getWorkSegmentsForDate(date, config) {
+            const day = date.getDay();
+            const dayMap = { 0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat' };
+            const dayKey = dayMap[day];
+            const isNormalWorkDay = config.workDays.includes(dayKey);
+
+            let startStr = null, endStr = null;
+
+            if (day === 6 && config.saturdayWork) {
+                startStr = config.satStart;
+                endStr = config.satEnd;
+            } else if (day === 0 && config.sundayWork) {
+                startStr = config.sunStart;
+                endStr = config.sunEnd;
+            } else if (isNormalWorkDay) {
+                startStr = config.workStart;
+                endStr = config.workEnd;
+            } else {
+                return [];
+            }
+
+            let startMin = timeStrToMinutes(startStr);
+            let endMin = timeStrToMinutes(endStr);
+
+            if (endMin <= startMin) {
+                endMin += 1440;
+            }
+
+            let segments = [];
+            if (config.includeLunch) {
+                segments.push({ start: startMin, end: endMin });
+            } else {
+                let workIntervals = [{ start: startMin, end: endMin }];
+                const lunchIntervals = [
+                    { start: 720, end: 780 },
+                    { start: 720 + 1440, end: 780 + 1440 }
+                ];
+
+                for (let lunch of lunchIntervals) {
+                    let newIntervals = [];
+                    for (let wi of workIntervals) {
+                        if (lunch.end <= wi.start || lunch.start >= wi.end) {
+                            newIntervals.push(wi);
+                        } else {
+                            if (wi.start < lunch.start) {
+                                newIntervals.push({ start: wi.start, end: lunch.start });
+                            }
+                            if (wi.end > lunch.end) {
+                                newIntervals.push({ start: lunch.end, end: wi.end });
+                            }
+                        }
+                    }
+                    workIntervals = newIntervals;
+                }
+                segments = workIntervals.filter(s => s.end > s.start);
+            }
+
+            return segments;
+        }
+
+        function isWorkingTime(date, config) {
+            const nowMinutes = date.getHours() * 60 + date.getMinutes() + date.getSeconds() / 60;
+            const todaySegments = getWorkSegmentsForDate(date, config);
+            for (let seg of todaySegments) {
+                if (nowMinutes >= seg.start && nowMinutes < seg.end) {
+                    return true;
+                }
+            }
+            const yesterday = new Date(date);
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdaySegments = getWorkSegmentsForDate(yesterday, config);
+            for (let seg of yesterdaySegments) {
+                if (seg.end > 1440) {
+                    const adjustedStart = seg.start - 1440;
+                    const adjustedEnd = seg.end - 1440;
+                    if (nowMinutes >= adjustedStart && nowMinutes < adjustedEnd) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function getWorkedMinutesForDayStart(date, config, now) {
+            const segments = getWorkSegmentsForDate(date, config);
+            if (segments.length === 0) return 0;
+
+            const isToday = date.toDateString() === now.toDateString();
+            const nowMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+
+            let total = 0;
+            for (let seg of segments) {
+                if (!isToday) {
+                    if (seg.end > 1440) {
+                        const todayPortionEnd = seg.end - 1440;
+                        const dateNext = new Date(date);
+                        dateNext.setDate(dateNext.getDate() + 1);
+                        if (now >= dateNext && nowMinutes >= todayPortionEnd) {
+                            total += (seg.end - seg.start);
+                        } else if (now.toDateString() === dateNext.toDateString()) {
+                            total += (1440 - seg.start) + Math.max(0, Math.min(nowMinutes, todayPortionEnd));
+                        } else {
+                            total += (1440 - seg.start);
+                        }
+                    } else {
+                        total += (seg.end - seg.start);
+                    }
+                } else {
+                    if (nowMinutes <= seg.start) continue;
+                    const end = Math.min(nowMinutes, seg.end);
+                    if (end > seg.start) total += (end - seg.start);
+                }
+            }
+            return Math.max(0, total);
+        }
+
+        function calcTodayEarnings(config, now, perMinuteSalary) {
+            const today = new Date(now);
+            let workedMinutes = 0;
+
+            const todaySegments = getWorkSegmentsForDate(today, config);
+            const nowMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+            for (let seg of todaySegments) {
+                if (nowMinutes <= seg.start) continue;
+                const end = Math.min(nowMinutes, seg.end);
+                if (end > seg.start) workedMinutes += (end - seg.start);
+            }
+
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdaySegments = getWorkSegmentsForDate(yesterday, config);
+            for (let seg of yesterdaySegments) {
+                if (seg.end > 1440) {
+                    const adjustedEnd = seg.end - 1440;
+                    const end = Math.min(nowMinutes, adjustedEnd);
+                    if (end > 0) workedMinutes += end;
+                }
+            }
+
+            return workedMinutes * perMinuteSalary;
+        }
+
+        function calcMonthTotalWorkMinutes(config, year, month) {
+            let total = 0;
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            for (let d = 1; d <= daysInMonth; d++) {
+                const date = new Date(year, month, d);
+                const segments = getWorkSegmentsForDate(date, config);
+                for (let seg of segments) {
+                    total += (seg.end - seg.start);
+                }
+            }
+            return total;
+        }
+
+        function calcMonthWorkedMinutes(config, now) {
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const actualPayday = Math.min(config.payday, daysInMonth);
+
+            let periodStart;
+            if (now.getDate() >= actualPayday) {
+                periodStart = new Date(year, month, actualPayday);
+            } else {
+                const prevMonth = month - 1;
+                const prevYear = year;
+                const prevMonthDays = new Date(prevYear, prevMonth + 1, 0).getDate();
+                const prevPayday = Math.min(config.payday, prevMonthDays);
+                periodStart = new Date(prevYear, prevMonth, prevPayday);
+            }
+
+            let totalMinutes = 0;
+            const endDate = new Date(now);
+            let loopDate = new Date(periodStart);
+            while (loopDate <= endDate) {
+                totalMinutes += getWorkedMinutesForDayStart(loopDate, config, now);
+                loopDate.setDate(loopDate.getDate() + 1);
+            }
+            return totalMinutes;
+        }
+
+        function calcDaysToPayday(payday, now) {
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const today = now.getDate();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const actualPayday = Math.min(payday, daysInMonth);
+            if (today <= actualPayday) {
+                return actualPayday - today;
+            } else {
+                const nextMonth = month + 1;
+                const nextYear = year + (nextMonth > 11 ? 1 : 0);
+                const nextMonthActual = nextMonth % 12;
+                const nextMonthDays = new Date(nextYear, nextMonthActual + 1, 0).getDate();
+                const nextPayday = Math.min(payday, nextMonthDays);
+                const endOfMonth = new Date(year, month + 1, 0);
+                const daysRemainingThisMonth = endOfMonth.getDate() - today;
+                return daysRemainingThisMonth + nextPayday;
+            }
+        }
+
+        function hasAnyOvernight(config) {
+            if (isOvernight(config.workStart, config.workEnd)) return true;
+            if (config.saturdayWork && isOvernight(config.satStart, config.satEnd)) return true;
+            if (config.sundayWork && isOvernight(config.sunStart, config.sunEnd)) return true;
+            return false;
+        }
+
+        function updateDashboard() {
+            const now = new Date();
+            if (!userConfig || !wholeMonthWorkMinutes) return;
+
+            const working = isWorkingTime(now, userConfig);
+            workStatus.textContent = working ? '⚡ 工作中 · 血汗增加中' : '💤 休息中 · 停止計算';
+            workStatus.style.color = working ? '#ffd966' : '#8a9aa8';
+
+            // 極低頻率自動換金句（每 5 分鐘左右一次），避免同按鈕衝突
+            if (Math.random() < 0.00003) {
+                quoteText.textContent = getRandomQuote();
+            }
+
+            const perMinuteSalary = wholeMonthWorkMinutes > 0 ? userConfig.monthlySalary / wholeMonthWorkMinutes : 0;
+            const workedMinutes = calcMonthWorkedMinutes(userConfig, now);
+            const totalEarned = workedMinutes * perMinuteSalary;
+
+            salaryDisplay.textContent = `$${totalEarned.toFixed(2)}`;
+            hoursWorked.textContent = `${(workedMinutes / 60).toFixed(2)} hr`;
+
+            const todayEarned = calcTodayEarnings(userConfig, now, perMinuteSalary);
+            todayEarnings.textContent = `$${todayEarned.toFixed(2)}`;
+
+            const daysLeft = calcDaysToPayday(userConfig.payday, now);
+            daysToPayday.textContent = `${daysLeft} 日`;
+
+            let progress = wholeMonthWorkMinutes > 0 ? (workedMinutes / wholeMonthWorkMinutes) * 100 : 0;
+            progress = Math.min(100, Math.max(0, progress));
+            progressPercent.textContent = `${progress.toFixed(1)}%`;
+            progressText.textContent = `${progress.toFixed(1)}%`;
+            progressFill.style.width = `${progress}%`;
+
+            if (working) {
+                const perSecond = perMinuteSalary / 60;
+                salarySub.textContent = `每秒 +$${perSecond.toFixed(4)} · 繼續加油`;
+            } else {
+                salarySub.textContent = `非工作時間 · 暫停計算`;
+            }
+
+            userGreeting.textContent = `👋 ${userConfig.username}`;
+
+            if (hasAnyOvernight(userConfig)) {
+                nightBadge.classList.remove('hidden');
+            } else {
+                nightBadge.classList.add('hidden');
+            }
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            updateDashboard();
+            timerInterval = setInterval(() => {
+                updateDashboard();
+            }, 1000);
+        }
+
+        function enterDashboard() {
+            userConfig.username = usernameInput.value.trim() || '無名氏';
+            userConfig.payday = parseInt(paydayInput.value, 10) || 1;
+            userConfig.monthlySalary = parseFloat(monthlySalaryInput.value) || 18000;
+            userConfig.workStart = workStartInput.value;
+            userConfig.workEnd = workEndInput.value;
+            userConfig.includeLunch = includeLunchCheck.checked;
+            userConfig.saturdayWork = saturdayWorkCheck.checked;
+            userConfig.sundayWork = sundayWorkCheck.checked;
+            userConfig.satStart = satStartInput.value;
+            userConfig.satEnd = satEndInput.value;
+            userConfig.sunStart = sunStartInput.value;
+            userConfig.sunEnd = sunEndInput.value;
+            userConfig.workDays = Array.from(selectedDays);
+
+            if (userConfig.payday < 1) userConfig.payday = 1;
+            if (userConfig.payday > 31) userConfig.payday = 31;
+
+            const now = new Date();
+            wholeMonthWorkMinutes = calcMonthTotalWorkMinutes(userConfig, now.getFullYear(), now.getMonth());
+
+            setupPanel.classList.add('hidden');
+            dashboardPanel.classList.remove('hidden');
+
+            quoteText.textContent = getRandomQuote();
+
+            if (hasAnyOvernight(userConfig)) {
+                nightBadge.classList.remove('hidden');
+            } else {
+                nightBadge.classList.add('hidden');
+            }
+
+            startTimer();
+        }
+
+        function backToSetup() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            usernameInput.value = userConfig.username;
+            paydayInput.value = userConfig.payday;
+            monthlySalaryInput.value = userConfig.monthlySalary;
+            workStartInput.value = userConfig.workStart;
+            workEndInput.value = userConfig.workEnd;
+            includeLunchCheck.checked = userConfig.includeLunch;
+            saturdayWorkCheck.checked = userConfig.saturdayWork;
+            sundayWorkCheck.checked = userConfig.sundayWork;
+            satStartInput.value = userConfig.satStart;
+            satEndInput.value = userConfig.satEnd;
+            sunStartInput.value = userConfig.sunStart;
+            sunEndInput.value = userConfig.sunEnd;
+
+            selectedDays = new Set(userConfig.workDays);
+            renderWorkDays();
+
+            satTimeGroup.style.display = userConfig.saturdayWork ? 'block' : 'none';
+            sunTimeGroup.style.display = userConfig.sundayWork ? 'block' : 'none';
+
+            updateOvernightHints();
+
+            dashboardPanel.classList.add('hidden');
+            setupPanel.classList.remove('hidden');
+        }
+
+        // 出金句按鈕
+        function showNewQuote() {
+            const newQuote = getRandomQuote();
+            quoteText.textContent = newQuote;
+            // 觸發動畫
+            quoteText.classList.remove('quote-pop');
+            void quoteText.offsetWidth; // 強制 reflow 以重啟動畫
+            quoteText.classList.add('quote-pop');
+        }
+
+        startBtn.addEventListener('click', enterDashboard);
+        editBtn.addEventListener('click', backToSetup);
+        quoteBtn.addEventListener('click', showNewQuote);
+
+        satTimeGroup.style.display = 'none';
+        sunTimeGroup.style.display = 'none';
+
+        usernameInput.value = '無名氏';
+        paydayInput.value = 1;
+        monthlySalaryInput.value = 18000;
+
+        updateOvernightHints();
+
+        window.enterDashboard = enterDashboard;
+    })();
+</script>
+</body>
+</html>
